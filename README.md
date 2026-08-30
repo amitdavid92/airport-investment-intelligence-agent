@@ -35,9 +35,13 @@ uv sync --extra dev
 export GEMINI_API_KEY=AIza...            # paste the key from above; chat only,
                                           # scoring works without it
 
-uv run python -m airport_iq.ingest       # build the dataset (~30s first run)
 uv run uvicorn airport_iq.api.main:app --port 8000
 ```
+
+The built dataset (`data/airports.parquet`, 995 airports) is committed, so
+there is nothing to download before the first run. To rebuild it from the
+live public sources instead — takes ~30s — run
+`uv run python -m airport_iq.ingest --refresh`.
 
 Open **http://localhost:8000** for the web terminal UI (shown above — ranked
 table, live weight sliders, chat), or run `uv run streamlit run ui/app.py` in

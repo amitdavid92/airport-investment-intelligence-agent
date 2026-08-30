@@ -8,7 +8,6 @@ say nothing except "big airports are big".
 
 from __future__ import annotations
 
-import numpy as np
 import pandas as pd
 
 WINSOR_LOW = 0.01
@@ -62,9 +61,3 @@ def minmax_score(series: pd.Series) -> pd.Series:
 def normalized_fraction(series: pd.Series, *, groups: pd.Series | None = None) -> pd.Series:
     """Percentile rank expressed as a 0-1 fraction (not 0-100)."""
     return percentile_score(series, groups=groups) / 100.0
-
-
-def log_scale(series: pd.Series) -> pd.Series:
-    """log1p for heavily skewed volume metrics before ranking."""
-    values = pd.to_numeric(series, errors="coerce")
-    return np.log1p(values.clip(lower=0))

@@ -8,7 +8,6 @@ numbers - the LLM path has no privileged access and no separate code path.
 from __future__ import annotations
 
 import functools
-import math
 from difflib import SequenceMatcher
 from typing import Any
 

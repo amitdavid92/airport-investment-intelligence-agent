@@ -68,6 +68,8 @@
   .tool-chip { font-family: 'Geist Mono', monospace; font-size: 9px; padding: 2px 5px; background: oklch(0.93 0.004 90); color: oklch(0.42 0.005 90); letter-spacing: 0.03em; display: inline-flex; align-items: center; gap: 3px; margin: 3px 3px 0 0; }
   .suggestion { font-size: 11.5px; line-height: 1.4; padding: 7px 9px; background: oklch(0.995 0.002 90); border: 1px solid oklch(0.9 0.004 90); cursor: pointer; color: oklch(0.32 0.005 90); display: flex; align-items: flex-start; gap: 6px; margin-bottom: 3px; }
   .suggestion:hover { border-color: oklch(0.55 0.16 340); color: oklch(0.45 0.14 340); }
+  .suggestion.disabled { opacity: 0.5; cursor: not-allowed; }
+  .suggestion.disabled:hover { border-color: oklch(0.9 0.004 90); color: oklch(0.32 0.005 90); }
   .composer { padding: 9px 14px; border-top: 1px solid oklch(0.9 0.004 90); background: oklch(0.99 0.002 90); }
   .composer-row { display: flex; align-items: center; gap: 8px; border: 1px solid oklch(0.86 0.004 90); background: oklch(1 0 0); padding: 6px 8px; }
   .composer-row input { flex: 1; border: none; font-family: Geist, sans-serif; font-size: 12px; color: oklch(0.24 0.005 90); background: transparent; padding: 1px 0; }
@@ -209,6 +211,7 @@ const state = {
 let optionsData = null;
 let healthData = null;
 let airports = [];
+let inScopeTotal = 0;
 let lastWarnings = [];
 let detailCache = new Map();
 
@@ -294,6 +297,7 @@ async function loadHealth() {
       `<span class="dot" style="background:oklch(0.58 0.18 25);"></span>ENGINE DOWN`;
   }
   renderChatWarning();
+  renderChat();  // health decides whether the suggestion chips are live
 }
 
 function renderWeightsList() {
@@ -323,9 +327,12 @@ function renderWeightsList() {
 
 async function fetchRank() {
   document.getElementById("tableBody").innerHTML = `<div class="mono" style="padding:20px 16px;color:oklch(0.55 0.005 90);font-size:11px;">loading…</div>`;
-  const data = await apiGet("/rank", { region: state.region || undefined, min_enplanements: state.minEnpl, top_n: 900 });
+  // top_n covers the whole scored dataset (995 airports) so the client-side
+  // re-ranking below sees every airport in scope, not a truncated head of it.
+  const data = await apiGet("/rank", { region: state.region || undefined, min_enplanements: state.minEnpl, top_n: 1000 });
   airports = data.results || [];
   lastWarnings = data.warnings || [];
+  inScopeTotal = data.airports_in_scope ?? airports.length;
   if (!airports.find(a => a.iata === state.sel)) {
     state.sel = airports.length ? airports[0].iata : null;
   }
@@ -346,13 +353,13 @@ function renderComputed() {
     document.getElementById(`wpct-${c.key}`).textContent = wTot > 0 ? Math.round((w[c.key] / wTot) * 100) + "%" : "—";
   });
 
-  document.getElementById("inScopeLabel").textContent = `${airports.length}`;
-  document.getElementById("scopeLabel").textContent = `${(state.region ? optionsData.regions[state.region] : "ALL US").toUpperCase()} · ${airports.length} RANKED`;
+  document.getElementById("inScopeLabel").textContent = `${inScopeTotal}`;
+  document.getElementById("scopeLabel").textContent = `${(state.region ? optionsData.regions[state.region] : "ALL US").toUpperCase()} · ${inScopeTotal} RANKED`;
 
   const ticker = document.getElementById("ticker");
   const profileName = matchedProfileName(w);
   ticker.innerHTML = [
-    ["IN SCOPE", `${airports.length} apt`],
+    ["IN SCOPE", `${inScopeTotal} apt`],
     ["TOP SCORE", rk.length ? `${rk[0].row.iata} ${rk[0].score.toFixed(1)}` : "—"],
     ["MEDIAN", rk.length ? rk[Math.floor(rk.length / 2)].score.toFixed(1) : "—"],
     ["PROFILE", profileName],
@@ -554,7 +561,12 @@ function renderChat() {
 
   const sug = document.getElementById("chatSuggestions");
   if (state.chatMessages.length === 0) {
-    sug.innerHTML = EXAMPLES.map(q => `<div class="suggestion" data-q="${q.replace(/"/g, "&quot;")}"><span class="msi" style="font-size:13px;color:oklch(0.6 0.11 340);padding-top:1px;">north_east</span><span>${q}</span></div>`).join("");
+    // Without a key these are inert, so show them as disabled rather than
+    // letting a reviewer click one and get silence.
+    const chatOff = healthData && !healthData.gemini_key_configured;
+    const cls = chatOff ? "suggestion disabled" : "suggestion";
+    const title = chatOff ? ' title="Set GEMINI_API_KEY to enable the chat"' : "";
+    sug.innerHTML = EXAMPLES.map(q => `<div class="${cls}"${title} data-q="${q.replace(/"/g, "&quot;")}"><span class="msi" style="font-size:13px;color:oklch(0.6 0.11 340);padding-top:1px;">north_east</span><span>${q}</span></div>`).join("");
     sug.querySelectorAll(".suggestion").forEach(el => el.addEventListener("click", () => sendChat(el.dataset.q)));
   } else {
     sug.innerHTML = "";
