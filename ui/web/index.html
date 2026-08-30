@@ -1,0 +1,641 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Airport Investment Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20,300,0,0&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; background: oklch(0.965 0.003 90); }
+  * { box-sizing: border-box; }
+  body { font-family: Geist, Helvetica, sans-serif; color: oklch(0.24 0.005 90); }
+  a { color: oklch(0.55 0.16 340); text-decoration: none; }
+  a:hover { color: oklch(0.42 0.16 340); text-decoration: underline; }
+  ::selection { background: oklch(0.88 0.06 340); }
+  input[type=range] { -webkit-appearance: none; appearance: none; background: transparent; }
+  input[type=range]::-webkit-slider-runnable-track { height: 2px; background: oklch(0.84 0.004 90); }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 10px; height: 10px; margin-top: -4px; border-radius: 50%; background: oklch(0.24 0.005 90); cursor: pointer; }
+  input:focus, select:focus, button:focus { outline: none; }
+  .scr::-webkit-scrollbar { width: 8px; height: 8px; }
+  .scr::-webkit-scrollbar-thumb { background: oklch(0.86 0.004 90); border-radius: 4px; }
+  .scr::-webkit-scrollbar-track { background: transparent; }
+  .mono { font-family: 'Geist Mono', monospace; }
+  .msi { font-family: 'Material Symbols Rounded'; font-variation-settings: 'FILL' 0, 'wght' 300; line-height: 1; }
+  .app { height: 100vh; min-height: 760px; min-width: 1340px; display: grid; grid-template-rows: 42px 30px 1fr; overflow: hidden; background: oklch(0.965 0.003 90); }
+  header { display: flex; align-items: center; justify-content: space-between; padding: 0 14px; border-bottom: 1px solid oklch(0.88 0.004 90); background: oklch(0.995 0.002 90); }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .dot { width: 5px; height: 5px; border-radius: 50%; display: inline-block; }
+  .btnish { padding: 3px 9px; border: 1px solid oklch(0.85 0.004 90); display: flex; align-items: center; gap: 4px; cursor: pointer; background: none; font: inherit; color: inherit; }
+  .btnish:hover { border-color: oklch(0.55 0.16 340); color: oklch(0.45 0.14 340); }
+  .ticker { display: flex; align-items: center; gap: 0; padding: 0 14px; border-bottom: 1px solid oklch(0.88 0.004 90); background: oklch(0.985 0.002 90); overflow-x: auto; }
+  .ticker-item { display: flex; align-items: baseline; gap: 6px; padding-right: 22px; margin-right: 22px; border-right: 1px solid oklch(0.9 0.004 90); white-space: nowrap; }
+  .body-grid { display: grid; grid-template-columns: 254px minmax(0, 1fr) 396px; height: 100%; overflow: hidden; }
+  aside.left { border-right: 1px solid oklch(0.88 0.004 90); background: oklch(0.978 0.002 90); overflow-y: auto; padding: 0 0 24px; }
+  .sect { padding: 12px 14px; border-bottom: 1px solid oklch(0.9 0.004 90); }
+  .sect-title { font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: oklch(0.5 0.005 90); display: flex; align-items: center; gap: 6px; }
+  .region-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; margin-top: 8px; }
+  .region-btn { font-size: 11px; padding: 5px 6px; cursor: pointer; border: 1px solid oklch(0.88 0.004 90); background: oklch(0.995 0.002 90); color: oklch(0.35 0.005 90); }
+  .region-btn:hover { border-color: oklch(0.6 0.005 90); }
+  .region-btn.active { background: oklch(0.24 0.005 90); color: oklch(0.97 0.003 90); border-color: oklch(0.24 0.005 90); }
+  .weight-row { margin-bottom: 14px; }
+  .weight-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; }
+  .weight-note { font-size: 10px; color: oklch(0.58 0.005 90); line-height: 1.35; margin-top: 3px; }
+  main { overflow-y: auto; background: oklch(0.995 0.002 90); }
+  .main-head { display: flex; align-items: baseline; justify-content: space-between; padding: 11px 16px 10px; border-bottom: 1px solid oklch(0.9 0.004 90); }
+  .tbl-grid { display: grid; grid-template-columns: 30px 54px minmax(180px,1fr) 62px 118px 46px 46px 46px 46px 46px 44px; gap: 0; padding: 0 16px; min-width: 800px; align-items: center; }
+  .tbl-head { height: 26px; border-bottom: 1px solid oklch(0.88 0.004 90); background: oklch(0.975 0.002 90); font-family: 'Geist Mono', monospace; font-size: 9px; letter-spacing: 0.08em; color: oklch(0.5 0.005 90); }
+  .tbl-row { height: 30px; cursor: pointer; border-bottom: 1px solid oklch(0.935 0.004 90); }
+  .tbl-row:hover { background: oklch(0.955 0.006 340) !important; }
+  .r { text-align: right; }
+  .bar-track { height: 5px; background: oklch(0.92 0.004 90); }
+  .bar-fill { height: 5px; }
+  .detail-wrap { padding: 16px 16px 10px; border-top: 1px solid oklch(0.88 0.004 90); margin-top: 8px; background: oklch(0.978 0.002 90); }
+  .detail-cols { display: grid; grid-template-columns: minmax(380px,1fr) 300px; gap: 24px; margin-top: 14px; padding-bottom: 20px; min-width: 704px; }
+  .kpi-row { display: grid; grid-template-columns: 132px minmax(0,1fr) 118px; gap: 12px; align-items: center; height: 34px; border-bottom: 1px solid oklch(0.92 0.004 90); }
+  .kpi-bar-wrap { position: relative; height: 12px; background: oklch(0.93 0.004 90); }
+  .kpi-bar-fill { position: absolute; left: 0; top: 0; height: 12px; }
+  .kpi-median { position: absolute; left: 0; top: 0; height: 12px; border-right: 1px solid oklch(0.45 0.005 90); }
+  .raw-row { display: flex; justify-content: space-between; align-items: baseline; height: 25px; border-bottom: 1px solid oklch(0.93 0.004 90); }
+  .plate { height: 92px; margin-bottom: 12px; border: 1px solid oklch(0.88 0.004 90); background-color: oklch(0.955 0.003 90); background-image: repeating-linear-gradient(135deg, oklch(0.9 0.004 90) 0 1px, transparent 1px 7px); display: flex; align-items: flex-end; justify-content: space-between; padding: 7px 8px; }
+  .callout { margin-top: 12px; padding: 9px 10px; background: oklch(0.955 0.008 340); border-left: 2px solid oklch(0.55 0.16 340); }
+  aside.right { border-left: 1px solid oklch(0.88 0.004 90); background: oklch(0.978 0.002 90); display: grid; grid-template-rows: 1fr auto auto; overflow: hidden; }
+  .chat-pane { overflow-y: auto; padding: 12px 14px; }
+  .msg { margin-bottom: 14px; }
+  .msg-head { display: flex; align-items: baseline; gap: 7px; margin-bottom: 5px; }
+  .msg-text { font-size: 12.5px; line-height: 1.55; color: oklch(0.26 0.005 90); padding-left: 1px; white-space: pre-wrap; }
+  .tool-chip { font-family: 'Geist Mono', monospace; font-size: 9px; padding: 2px 5px; background: oklch(0.93 0.004 90); color: oklch(0.42 0.005 90); letter-spacing: 0.03em; display: inline-flex; align-items: center; gap: 3px; margin: 3px 3px 0 0; }
+  .suggestion { font-size: 11.5px; line-height: 1.4; padding: 7px 9px; background: oklch(0.995 0.002 90); border: 1px solid oklch(0.9 0.004 90); cursor: pointer; color: oklch(0.32 0.005 90); display: flex; align-items: flex-start; gap: 6px; margin-bottom: 3px; }
+  .suggestion:hover { border-color: oklch(0.55 0.16 340); color: oklch(0.45 0.14 340); }
+  .composer { padding: 9px 14px; border-top: 1px solid oklch(0.9 0.004 90); background: oklch(0.99 0.002 90); }
+  .composer-row { display: flex; align-items: center; gap: 8px; border: 1px solid oklch(0.86 0.004 90); background: oklch(1 0 0); padding: 6px 8px; }
+  .composer-row input { flex: 1; border: none; font-family: Geist, sans-serif; font-size: 12px; color: oklch(0.24 0.005 90); background: transparent; padding: 1px 0; }
+  .send-btn { font-family: 'Geist Mono', monospace; font-size: 9px; letter-spacing: 0.08em; padding: 4px 8px; background: oklch(0.24 0.005 90); color: oklch(0.97 0.003 90); cursor: pointer; display: flex; align-items: center; gap: 4px; border: none; }
+  .send-btn:disabled { background: oklch(0.8 0.004 90); cursor: not-allowed; }
+  .assump { border-top: 1px solid oklch(0.88 0.004 90); background: oklch(0.962 0.004 75); padding: 11px 14px 13px; }
+  .assump-row { display: grid; grid-template-columns: 52px minmax(0,1fr); gap: 8px; padding: 5px 0; border-top: 1px solid oklch(0.9 0.02 75); }
+  select.term { font-family: 'Geist Mono', monospace; font-size: 11px; border: 1px solid oklch(0.85 0.004 90); background: oklch(1 0 0); color: oklch(0.3 0.005 90); padding: 4px 6px; width: 100%; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="brand">
+      <div style="display:flex;align-items:baseline;gap:7px;">
+        <span class="msi" style="font-size:17px;color:oklch(0.55 0.16 340);">flight_takeoff</span>
+        <span style="font-size:13px;font-weight:600;letter-spacing:-0.01em;">Airport Investment Intelligence</span>
+        <span class="mono" style="font-size:10px;color:oklch(0.6 0.005 90);letter-spacing:0.04em;">AIQ · v0.1</span>
+      </div>
+      <div class="mono" style="font-size:10px;padding:3px 8px;background:oklch(0.24 0.005 90);color:oklch(0.97 0.003 90);letter-spacing:0.06em;margin-left:6px;">SCREEN</div>
+    </div>
+    <div class="mono" style="display:flex;align-items:center;gap:16px;font-size:10px;color:oklch(0.55 0.005 90);letter-spacing:0.04em;">
+      <span style="display:flex;align-items:center;gap:5px;"><span class="msi" style="font-size:13px;color:oklch(0.62 0.005 90);">database</span>BTS T-100 · FAA NTAD · CY2024</span>
+      <span id="engineStatus" style="display:flex;align-items:center;gap:5px;">…</span>
+      <button class="btnish mono" id="exportBtn"><span class="msi" style="font-size:13px;color:oklch(0.5 0.005 90);">ios_share</span>EXPORT</button>
+    </div>
+  </header>
+
+  <div class="ticker mono" id="ticker" style="font-size:10px;color:oklch(0.55 0.005 90);letter-spacing:0.04em;"></div>
+
+  <div class="body-grid">
+
+    <aside class="left scr">
+      <div class="sect">
+        <div class="sect-title"><span class="msi" style="font-size:14px;color:oklch(0.55 0.16 340);">tune</span>SCORING ENGINE</div>
+        <div style="font-size:11px;line-height:1.45;color:oklch(0.45 0.005 90);margin-top:6px;">Deterministic. Weights below drive the composite directly — the model never computes a figure. Recomputed live, client-side, over the real percentile components below.</div>
+      </div>
+
+      <div class="sect">
+        <div class="sect-title"><span class="msi" style="font-size:14px;color:oklch(0.6 0.005 90);">public</span>UNIVERSE</div>
+        <div class="region-grid" id="regionGrid"></div>
+        <div class="mono" style="display:flex;justify-content:space-between;font-size:10px;color:oklch(0.55 0.005 90);margin-top:9px;">
+          <span>IN SCOPE</span><span id="inScopeLabel">—</span>
+        </div>
+      </div>
+
+      <div class="sect">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:11px;">
+          <div class="sect-title"><span class="msi" style="font-size:14px;color:oklch(0.6 0.005 90);">equalizer</span>KPI WEIGHTS</div>
+          <div id="resetBtn" class="mono" style="font-size:9px;letter-spacing:0.06em;color:oklch(0.55 0.16 340);cursor:pointer;">RESET</div>
+        </div>
+        <div id="weightsList"></div>
+      </div>
+
+      <div class="sect" style="border-bottom:none;">
+        <div class="sect-title"><span class="msi" style="font-size:14px;color:oklch(0.6 0.005 90);">filter_alt</span>MIN ENPLANEMENTS</div>
+        <select class="term mono" id="minEnpl" style="margin-top:8px;"></select>
+      </div>
+    </aside>
+
+    <main class="scr">
+      <div class="main-head">
+        <div style="display:flex;align-items:baseline;gap:10px;">
+          <span style="font-size:13px;font-weight:600;">Expansion candidates</span>
+          <span class="mono" id="scopeLabel" style="font-size:10px;color:oklch(0.55 0.005 90);letter-spacing:0.04em;"></span>
+        </div>
+        <div class="mono" style="font-size:10px;color:oklch(0.55 0.005 90);letter-spacing:0.04em;">RANK Δ VS EQUAL-WEIGHT BASELINE</div>
+      </div>
+
+      <div class="tbl-grid tbl-head">
+        <div>#</div><div>CODE</div><div>AIRPORT</div><div class="r">SCORE</div><div></div>
+        <div class="r">DEM</div><div class="r">STRN</div><div class="r">UNM</div><div class="r">REN</div><div class="r">EXP</div><div class="r">Δ</div>
+      </div>
+      <div id="tableBody"></div>
+
+      <div id="detailPanel"></div>
+    </main>
+
+    <aside class="right">
+      <div class="chat-pane scr" id="chatPane">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:11px;">
+          <div class="sect-title"><span class="msi" style="font-size:14px;color:oklch(0.55 0.16 340);">forum</span>ANALYST COPILOT</div>
+          <div id="clearBtn" class="mono" style="font-size:9px;letter-spacing:0.06em;color:oklch(0.55 0.005 90);cursor:pointer;">CLEAR</div>
+        </div>
+        <div id="chatWarning"></div>
+        <div id="chatMessages"></div>
+        <div id="chatSuggestions"></div>
+      </div>
+
+      <div class="composer">
+        <div class="composer-row">
+          <input id="draftInput" placeholder="Ask about a market — real numbers, live from /rank and /chat" />
+          <button class="send-btn mono" id="sendBtn">SEND<span class="msi" style="font-size:12px;">arrow_upward</span></button>
+        </div>
+      </div>
+
+      <div class="assump">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+          <div class="mono sect-title" style="color:oklch(0.42 0.06 75);"><span class="msi" style="font-size:14px;color:oklch(0.55 0.11 75);">shield_question</span>ASSUMPTIONS &amp; SCOPING</div>
+          <div class="mono" style="font-size:9px;color:oklch(0.5 0.03 75);">ALWAYS ON</div>
+        </div>
+        <div id="assumptionsList"></div>
+      </div>
+    </aside>
+
+  </div>
+</div>
+
+<script>
+const COMPONENTS = [
+  { key: "demand_pressure", label: "Demand pressure", short: "DEM", src: "ANNUAL OPS / RUNWAY", note: "Runway-system saturation.", color: "oklch(0.55 0.16 340)", icon: "trending_up" },
+  { key: "terminal_strain", label: "Terminal strain", short: "STRN", src: "PAX / DEPARTURE", note: "Aircraft up-gauging — a terminal-side signal.", color: "oklch(0.57 0.15 305)", icon: "meeting_room" },
+  { key: "unmet_demand", label: "Unmet demand", short: "UNM", src: "PRESSURE × CONSTRAINT", note: "Pressure amplified by how binding land is.", color: "oklch(0.59 0.14 270)", icon: "bolt" },
+  { key: "renewal_need", label: "Renewal need", short: "REN", src: "RUNWAY PAVEMENT COND.", note: "Severity-weighted share not in sound condition.", color: "oklch(0.61 0.13 235)", icon: "construction" },
+  { key: "expansion_feasibility", label: "Expansion feasibility", short: "EXP", src: "LAND · OWNERSHIP · RUNWAY", note: "Land headroom, public ownership, long-haul capable.", color: "oklch(0.63 0.12 200)", icon: "open_in_full" },
+];
+const COMPONENT_KEYS = COMPONENTS.map(c => c.key);
+const DEFAULT_WEIGHTS = { demand_pressure: 30, terminal_strain: 25, unmet_demand: 20, renewal_need: 15, expansion_feasibility: 10 };
+const NAMED_PROFILES = {
+  balanced: DEFAULT_WEIGHTS,
+  terminal: { terminal_strain: 40, unmet_demand: 25, demand_pressure: 15, expansion_feasibility: 12, renewal_need: 8 },
+  runway: { demand_pressure: 40, unmet_demand: 22, renewal_need: 18, expansion_feasibility: 12, terminal_strain: 8 },
+  renewal: { renewal_need: 45, demand_pressure: 20, terminal_strain: 15, unmet_demand: 12, expansion_feasibility: 8 },
+};
+const HUB_SHORT = { large_hub: "LRG", medium_hub: "MED", small_hub: "SML", nonhub: "NON" };
+const MIN_ENPL_OPTIONS = [0, 1000, 5000, 10000, 25000, 50000, 100000, 250000, 500000, 1000000, 2000000];
+
+const state = {
+  weights: { ...DEFAULT_WEIGHTS },
+  region: "",
+  minEnpl: 10000,
+  sel: null,
+  draft: "",
+  chatMessages: [],
+  sessionId: null,
+};
+
+let optionsData = null;
+let healthData = null;
+let airports = [];
+let lastWarnings = [];
+let detailCache = new Map();
+
+function fmtCount(n) {
+  if (n >= 1e6) return (n / 1e6).toFixed(n % 1e6 === 0 ? 0 : 1) + "M";
+  if (n >= 1e3) return (n / 1e3).toFixed(0) + "k";
+  return String(n);
+}
+function nowStamp() {
+  const t = new Date();
+  return String(t.getHours()).padStart(2, "0") + ":" + String(t.getMinutes()).padStart(2, "0");
+}
+async function apiGet(path, params) {
+  const url = new URL(path, window.location.origin);
+  if (params) for (const [k, v] of Object.entries(params)) if (v !== undefined && v !== null && v !== "") url.searchParams.set(k, v);
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
+  return res.json();
+}
+
+function weightTotal(w) { return COMPONENT_KEYS.reduce((s, k) => s + w[k], 0); }
+
+function scoreOf(row, w) {
+  let sum = 0, total = 0;
+  for (const k of COMPONENT_KEYS) {
+    const v = row.components[k];
+    if (v === null || v === undefined) continue;
+    sum += v * w[k];
+    total += w[k];
+  }
+  return total > 0 ? sum / total : null;
+}
+
+function ranked(rows, w) {
+  return rows
+    .map(row => ({ row, score: scoreOf(row, w) }))
+    .filter(r => r.score !== null)
+    .sort((a, b) => b.score - a.score);
+}
+
+function matchedProfileName(w) {
+  for (const [name, pw] of Object.entries(NAMED_PROFILES)) {
+    if (COMPONENT_KEYS.every(k => Math.abs(w[k] - pw[k]) < 0.6)) return name;
+  }
+  return "custom";
+}
+
+function medians(rows) {
+  const out = {};
+  for (const c of COMPONENTS) {
+    const vs = rows.map(r => r.components[c.key]).filter(v => v !== null && v !== undefined).sort((a, b) => a - b);
+    out[c.key] = vs.length ? vs[Math.floor(vs.length / 2)] : 50;
+  }
+  return out;
+}
+
+async function loadOptions() {
+  optionsData = await apiGet("/options");
+  const grid = document.getElementById("regionGrid");
+  const all = [["", "All US"], ...Object.entries(optionsData.regions)];
+  grid.innerHTML = all.map(([key, label]) =>
+    `<div class="region-btn${key === state.region ? " active" : ""}" data-region="${key}">${label}</div>`
+  ).join("");
+  grid.querySelectorAll(".region-btn").forEach(el => el.addEventListener("click", () => {
+    state.region = el.dataset.region;
+    fetchRank();
+  }));
+
+  const sel = document.getElementById("minEnpl");
+  sel.innerHTML = MIN_ENPL_OPTIONS.map(n => `<option value="${n}"${n === state.minEnpl ? " selected" : ""}>≥ ${n === 0 ? "0" : fmtCount(n)} / yr</option>`).join("");
+  sel.addEventListener("change", () => { state.minEnpl = +sel.value; fetchRank(); });
+}
+
+async function loadHealth() {
+  try {
+    healthData = await apiGet("/health");
+    document.getElementById("engineStatus").innerHTML =
+      `<span class="dot" style="background:oklch(0.62 0.15 150);"></span>ENGINE LIVE · ${healthData.airports_scored} APT`;
+  } catch (e) {
+    healthData = { gemini_key_configured: false };
+    document.getElementById("engineStatus").innerHTML =
+      `<span class="dot" style="background:oklch(0.58 0.18 25);"></span>ENGINE DOWN`;
+  }
+  renderChatWarning();
+}
+
+function renderWeightsList() {
+  const el = document.getElementById("weightsList");
+  el.innerHTML = COMPONENTS.map(c => `
+    <div class="weight-row">
+      <div class="weight-head">
+        <span style="font-size:11px;font-weight:500;display:flex;align-items:center;gap:5px;"><span class="msi" style="font-size:14px;color:${c.color};">${c.icon}</span>${c.label}</span>
+        <span class="mono" id="wpct-${c.key}" style="font-size:11px;color:oklch(0.35 0.005 90);"></span>
+      </div>
+      <input type="range" min="0" max="60" step="1" value="${state.weights[c.key]}" id="wslider-${c.key}" style="width:100%;height:10px;display:block;" />
+      <div class="weight-note">${c.note}</div>
+    </div>
+  `).join("");
+  COMPONENTS.forEach(c => {
+    document.getElementById(`wslider-${c.key}`).addEventListener("input", e => {
+      state.weights[c.key] = +e.target.value;
+      renderComputed();
+    });
+  });
+  document.getElementById("resetBtn").addEventListener("click", () => {
+    state.weights = { ...DEFAULT_WEIGHTS };
+    COMPONENTS.forEach(c => { document.getElementById(`wslider-${c.key}`).value = state.weights[c.key]; });
+    renderComputed();
+  });
+}
+
+async function fetchRank() {
+  document.getElementById("tableBody").innerHTML = `<div class="mono" style="padding:20px 16px;color:oklch(0.55 0.005 90);font-size:11px;">loading…</div>`;
+  const data = await apiGet("/rank", { region: state.region || undefined, min_enplanements: state.minEnpl, top_n: 900 });
+  airports = data.results || [];
+  lastWarnings = data.warnings || [];
+  if (!airports.find(a => a.iata === state.sel)) {
+    state.sel = airports.length ? airports[0].iata : null;
+  }
+  renderComputed();
+}
+
+function renderComputed() {
+  const w = state.weights;
+  const wTot = weightTotal(w);
+  const rk = ranked(airports, w);
+  const eqW = { demand_pressure: 20, terminal_strain: 20, unmet_demand: 20, renewal_need: 20, expansion_feasibility: 20 };
+  const rkEq = ranked(airports, eqW).map(r => r.row.iata);
+  const meds = medians(airports);
+  const top = rk.length ? rk[0].score : 100;
+
+  COMPONENTS.forEach(c => {
+    document.getElementById(`wpct-${c.key}`).textContent = wTot > 0 ? Math.round((w[c.key] / wTot) * 100) + "%" : "—";
+  });
+
+  document.getElementById("inScopeLabel").textContent = `${airports.length}`;
+  document.getElementById("scopeLabel").textContent = `${(state.region ? optionsData.regions[state.region] : "ALL US").toUpperCase()} · ${airports.length} RANKED`;
+
+  const ticker = document.getElementById("ticker");
+  const profileName = matchedProfileName(w);
+  ticker.innerHTML = [
+    ["IN SCOPE", `${airports.length} apt`],
+    ["TOP SCORE", rk.length ? `${rk[0].row.iata} ${rk[0].score.toFixed(1)}` : "—"],
+    ["MEDIAN", rk.length ? rk[Math.floor(rk.length / 2)].score.toFixed(1) : "—"],
+    ["PROFILE", profileName],
+    ["Σ WEIGHTS", `${wTot} pts`],
+    ["EXCLUDED (FLOOR)", lastWarnings.length ? lastWarnings[0].match(/^\d+/)?.[0] ?? "0" : "0"],
+    ["LLM FIGURES", "0"],
+  ].map(([k, v]) => `<div class="ticker-item"><span>${k}</span><span style="font-weight:500;">${v}</span></div>`).join("");
+
+  const body = document.getElementById("tableBody");
+  body.innerHTML = rk.map((r, i) => {
+    const eqIdx = rkEq.indexOf(r.row.iata);
+    const dlt = eqIdx - i;
+    const isSel = r.row.iata === state.sel;
+    const deltaTxt = dlt === 0 ? "—" : (dlt > 0 ? "▲" + dlt : "▼" + Math.abs(dlt));
+    const deltaColor = dlt === 0 ? "oklch(0.72 0.004 90)" : (dlt > 0 ? "oklch(0.55 0.13 150)" : "oklch(0.58 0.15 25)");
+    const metrics = COMPONENT_KEYS.map(k => {
+      const v = r.row.components[k];
+      return `<div class="mono r" style="font-size:11px;color:oklch(0.4 0.005 90);">${v === null || v === undefined ? "—" : v.toFixed(0)}</div>`;
+    }).join("");
+    return `<div class="tbl-grid tbl-row" data-code="${r.row.iata}" style="background:${isSel ? "oklch(0.955 0.012 340)" : "transparent"};">
+      <div class="mono" style="font-size:11px;color:oklch(0.55 0.005 90);">${i + 1}</div>
+      <div class="mono" style="font-size:12px;font-weight:600;">${r.row.iata}</div>
+      <div style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:12px;">${r.row.name}<span style="color:oklch(0.62 0.005 90);"> · ${HUB_SHORT[r.row.hub_class] || r.row.hub_class}</span></div>
+      <div class="mono r" style="font-size:12px;font-weight:600;padding-right:10px;">${r.score.toFixed(1)}</div>
+      <div class="bar-track"><div class="bar-fill" style="background:${isSel ? "oklch(0.45 0.17 340)" : "oklch(0.68 0.11 340)"};width:${(r.score / (top || 1) * 100).toFixed(1)}%;"></div></div>
+      ${metrics}
+      <div class="mono r" style="font-size:10px;color:${deltaColor};">${deltaTxt}</div>
+    </div>`;
+  }).join("");
+  body.querySelectorAll(".tbl-row").forEach(el => el.addEventListener("click", () => {
+    state.sel = el.dataset.code;
+    renderComputed();
+    ensureDetail();
+  }));
+
+  renderDetail(rk, meds, top, wTot);
+  renderAssumptions();
+}
+
+function renderDetail(rk, meds, top, wTot) {
+  const panel = document.getElementById("detailPanel");
+  const entry = rk.find(r => r.row.iata === state.sel);
+  if (!entry) { panel.innerHTML = ""; return; }
+  const d = entry.row;
+  const w = state.weights;
+  const score = entry.score;
+
+  const kpiRows = COMPONENTS.map(c => {
+    const v = d.components[c.key];
+    const available = v !== null && v !== undefined;
+    const wt = wTot > 0 ? w[c.key] / wTot : 0;
+    const pts = available ? v * wt : 0;
+    return `<div class="kpi-row">
+      <div>
+        <div style="font-size:11.5px;font-weight:500;display:flex;align-items:center;gap:5px;"><span class="msi" style="font-size:14px;color:${c.color};">${c.icon}</span>${c.label}</div>
+        <div class="mono" style="font-size:9px;color:oklch(0.58 0.005 90);letter-spacing:0.04em;">${c.src}</div>
+      </div>
+      <div class="kpi-bar-wrap">
+        ${available ? `<div class="kpi-bar-fill" style="background:${c.color};width:${v.toFixed(1)}%;"></div>` : ""}
+        <div class="kpi-median" style="width:${(meds[c.key] || 0).toFixed(1)}%;"></div>
+      </div>
+      <div class="mono r" style="font-size:11px;color:oklch(0.35 0.005 90);">${available ? `${v.toFixed(0)} × ${(wt * 100).toFixed(0)}% = ${pts.toFixed(1)}` : "no data"}</div>
+    </div>`;
+  }).join("");
+
+  const stack = COMPONENTS.map(c => {
+    const v = d.components[c.key];
+    if (v === null || v === undefined || !score) return "";
+    const wt = wTot > 0 ? w[c.key] / wTot : 0;
+    const stackW = ((wt * v) / score * 100).toFixed(1);
+    return `<div style="height:12px;background:${c.color};width:${stackW}%;border-right:1px solid oklch(0.995 0.002 90);"></div>`;
+  }).join("");
+
+  const cached = detailCache.get(d.iata);
+  const rawRows = cached ? [
+    ["Enplanements 2024", cached.raw_kpis.enplanements_2024?.toLocaleString() ?? "—"],
+    ["Departures 2024", cached.raw_kpis.departures_2024?.toLocaleString() ?? "—"],
+    ["Annual operations", cached.raw_kpis.annual_operations?.toLocaleString() ?? "—"],
+    ["Runway count", cached.raw_kpis.runway_count ?? "—"],
+    ["Longest runway", cached.raw_kpis.longest_runway_ft ? cached.raw_kpis.longest_runway_ft.toLocaleString() + " ft" : "—"],
+    ["Acreage", cached.raw_kpis.acreage?.toLocaleString() ?? "—"],
+    ["Ops / runway", cached.raw_kpis.ops_per_runway?.toFixed(0) ?? "—"],
+    ["Pax / departure", cached.raw_kpis.pax_per_departure?.toFixed(1) ?? "—"],
+    ["Long-haul capable runway", cached.raw_kpis.long_haul_capable_runway === true ? "yes" : cached.raw_kpis.long_haul_capable_runway === false ? "no" : "—"],
+    ["Publicly owned", cached.raw_kpis.publicly_owned === true ? "yes" : cached.raw_kpis.publicly_owned === false ? "no" : "—"],
+  ] : [
+    ["Enplanements 2024", d.key_figures.enplanements_2024?.toLocaleString() ?? "—"],
+    ["Ops / runway", d.key_figures.ops_per_runway?.toFixed(0) ?? "—"],
+    ["Pax / departure", d.key_figures.pax_per_departure?.toFixed(1) ?? "—"],
+    ["Runway count", d.key_figures.runway_count ?? "—"],
+    ["Acreage", d.key_figures.acreage?.toLocaleString() ?? "—"],
+  ];
+
+  const unmetComp = COMPONENTS.find(c => c.key === "unmet_demand");
+  const unmetVal = d.components.unmet_demand;
+  const unmetText = cached
+    ? cached.components.find(c => c.component === "unmet_demand")?.definition ?? unmetComp.note
+    : unmetComp.note;
+
+  panel.innerHTML = `<div class="detail-wrap">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;">
+      <div style="display:flex;align-items:baseline;gap:10px;">
+        <span class="mono" style="font-size:19px;font-weight:600;letter-spacing:-0.01em;display:flex;align-items:center;gap:7px;"><span class="msi" style="font-size:19px;color:oklch(0.55 0.16 340);">flight</span>${d.iata}</span>
+        <span style="font-size:13px;font-weight:500;">${d.name}</span>
+        <span class="mono" style="font-size:10px;color:oklch(0.55 0.005 90);letter-spacing:0.04em;">${(d.state || "").toUpperCase()} · ${(HUB_SHORT[d.hub_class] || d.hub_class)}_HUB · ${(d.key_figures.enplanements_2024 / 1e6).toFixed(1)}M ENPL</span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:8px;">
+        <span class="mono" style="font-size:10px;letter-spacing:0.08em;color:oklch(0.5 0.005 90);">COMPOSITE</span>
+        <span class="mono" style="font-size:19px;font-weight:600;">${score.toFixed(1)}</span>
+        <span class="mono" style="font-size:10px;color:oklch(0.55 0.005 90);">/ 100</span>
+      </div>
+    </div>
+
+    <div class="detail-cols">
+      <div>
+        <div class="sect-title" style="margin-bottom:9px;"><span class="msi" style="font-size:14px;color:oklch(0.6 0.005 90);">stacked_bar_chart</span>SCORE DECOMPOSITION</div>
+        ${kpiRows}
+        <div class="kpi-row" style="grid-template-columns:132px minmax(0,1fr) 118px;height:30px;">
+          <div class="mono" style="font-size:10px;letter-spacing:0.08em;color:oklch(0.5 0.005 90);">WEIGHTED SUM</div>
+          <div style="display:flex;height:12px;">${stack}</div>
+          <div class="mono r" style="font-size:12px;font-weight:600;">= ${score.toFixed(1)}</div>
+        </div>
+        <div style="font-size:11px;color:oklch(0.5 0.005 90);margin-top:6px;line-height:1.5;">Vertical tick marks the in-scope median for that component. Percentiles are ranked nationally against all in-scope airports, not size peers.</div>
+      </div>
+
+      <div>
+        <div class="plate">
+          <span class="mono" style="font-size:9px;letter-spacing:0.04em;color:oklch(0.52 0.005 90);background:oklch(0.98 0.002 90);padding:2px 5px;">NO AIRFIELD IMAGERY · ${d.iata}</span>
+          <span class="msi" style="font-size:15px;color:oklch(0.66 0.005 90);">map</span>
+        </div>
+        <div class="sect-title" style="margin-bottom:9px;"><span class="msi" style="font-size:14px;color:oklch(0.6 0.005 90);">table_rows</span>RAW INPUTS${cached ? "" : " …"}</div>
+        ${rawRows.map(([label, value]) => `<div class="raw-row"><span style="font-size:11.5px;color:oklch(0.4 0.005 90);">${label}</span><span class="mono" style="font-size:11.5px;font-weight:500;">${value}</span></div>`).join("")}
+        <div class="callout">
+          <div class="mono" style="font-size:9px;letter-spacing:0.08em;color:oklch(0.45 0.09 340);margin-bottom:4px;display:flex;align-items:center;gap:5px;"><span class="msi" style="font-size:13px;color:oklch(0.5 0.12 340);">insights</span>UNMET DEMAND — ${unmetVal !== null && unmetVal !== undefined ? unmetVal.toFixed(0) + "th pctile" : "no data"}</div>
+          <div style="font-size:11.5px;line-height:1.5;">${unmetText}</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+async function ensureDetail() {
+  if (!state.sel || detailCache.has(state.sel)) { renderComputed(); return; }
+  try {
+    const data = await apiGet(`/airport/${state.sel}`);
+    detailCache.set(state.sel, data);
+  } catch (e) { /* raw panel just falls back to key_figures */ }
+  renderComputed();
+}
+
+function renderAssumptions() {
+  const el = document.getElementById("assumptionsList");
+  const items = [];
+  for (const wtext of lastWarnings) items.push({ tag: "SCOPE", icon: "filter_alt", text: wtext });
+  items.push({ tag: "PEERS", icon: "groups", text: "Percentiles are ranked nationally by default across all in-scope airports, not against FAA hub-class peers." });
+  items.push({ tag: "PROXY", icon: "rule", text: "Capacity is proxied by operations per runway and passengers per departure. Terminal square footage and gate counts are not in the dataset." });
+  items.push({ tag: "DERIVED", icon: "function", text: "Unmet Demand and Expansion Feasibility are derived composites, not directly reported statistics — built from percentile pressure, land headroom, ownership and runway capability." });
+  items.push({ tag: "VINTAGE", icon: "schedule", text: "Traffic is a single year (BTS T-100, CY2024). This measures current pressure, not a growth trend or a forecast." });
+  items.push({ tag: "AI ROLE", icon: "smart_toy", text: "The model resolves intent, picks a weight profile and calls tools in the chat. It never computes a score — every figure here comes from the scoring engine, recomputed live as weights change." });
+  el.innerHTML = items.map(a => `<div class="assump-row">
+    <span class="mono" style="font-size:9px;letter-spacing:0.04em;color:oklch(0.5 0.04 75);padding-top:1px;display:flex;align-items:center;gap:4px;"><span class="msi" style="font-size:12px;">${a.icon}</span>${a.tag}</span>
+    <span style="font-size:11px;line-height:1.45;color:oklch(0.34 0.01 75);">${a.text}</span>
+  </div>`).join("");
+}
+
+function renderChatWarning() {
+  const el = document.getElementById("chatWarning");
+  const input = document.getElementById("draftInput");
+  const btn = document.getElementById("sendBtn");
+  if (healthData && !healthData.gemini_key_configured) {
+    el.innerHTML = `<div style="font-size:11px;line-height:1.4;color:oklch(0.5 0.1 75);border-left:2px solid oklch(0.7 0.14 75);padding:6px 8px;margin-bottom:10px;background:oklch(0.97 0.02 75);">GEMINI_API_KEY is not set on the server, so chat is disabled. The scoring engine on the left works without it.</div>`;
+    input.disabled = true; btn.disabled = true;
+  } else {
+    el.innerHTML = "";
+    input.disabled = false; btn.disabled = false;
+  }
+}
+
+const EXAMPLES = [
+  "Which airports in New England are strong candidates for terminal expansion?",
+  "Compare LA and Santa Ana airport congestion levels.",
+  "What is the percentage of long haul flights out of Anchorage airport?",
+  "What is the unmet flight demand in SFO airport and why?",
+];
+
+function renderChat() {
+  const msgs = document.getElementById("chatMessages");
+  msgs.innerHTML = state.chatMessages.map(m => `
+    <div class="msg">
+      <div class="msg-head">
+        <span class="mono" style="font-size:9px;letter-spacing:0.08em;color:${m.role === "user" ? "oklch(0.5 0.005 90)" : "oklch(0.5 0.15 340)"};display:flex;align-items:center;gap:4px;"><span class="msi" style="font-size:13px;">${m.role === "user" ? "person" : "hub"}</span>${m.role === "user" ? "ANALYST" : "ENGINE + AGENT"}</span>
+        <span class="mono" style="font-size:9px;color:oklch(0.68 0.005 90);">${m.time}</span>
+      </div>
+      ${m.text ? `<div class="msg-text">${m.text}</div>` : (m.pending ? `<div class="msg-text" style="color:oklch(0.6 0.005 90);">…</div>` : "")}
+      ${m.tools && m.tools.length ? `<div>${m.tools.map(t => `<span class="tool-chip"><span class="msi" style="font-size:11px;color:oklch(0.6 0.005 90);">code</span>${t}</span>`).join("")}</div>` : ""}
+    </div>
+  `).join("");
+  msgs.scrollTop = msgs.scrollHeight;
+
+  const sug = document.getElementById("chatSuggestions");
+  if (state.chatMessages.length === 0) {
+    sug.innerHTML = EXAMPLES.map(q => `<div class="suggestion" data-q="${q.replace(/"/g, "&quot;")}"><span class="msi" style="font-size:13px;color:oklch(0.6 0.11 340);padding-top:1px;">north_east</span><span>${q}</span></div>`).join("");
+    sug.querySelectorAll(".suggestion").forEach(el => el.addEventListener("click", () => sendChat(el.dataset.q)));
+  } else {
+    sug.innerHTML = "";
+  }
+}
+
+async function sendChat(message) {
+  if (!message || !healthData?.gemini_key_configured) return;
+  state.chatMessages.push({ role: "user", text: message, time: nowStamp() });
+  const agentMsg = { role: "agent", text: "", tools: [], time: nowStamp(), pending: true };
+  state.chatMessages.push(agentMsg);
+  document.getElementById("draftInput").value = "";
+  renderChat();
+  try {
+    const res = await fetch("/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message, session_id: state.sessionId }),
+    });
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = "";
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      let idx;
+      while ((idx = buf.indexOf("\n")) >= 0) {
+        const line = buf.slice(0, idx).trim();
+        buf = buf.slice(idx + 1);
+        if (!line) continue;
+        const evt = JSON.parse(line);
+        if (evt.type === "session") state.sessionId = evt.session_id;
+        else if (evt.type === "tool_call") { agentMsg.tools.push(evt.name); renderChat(); }
+        else if (evt.type === "text") { agentMsg.text += evt.text; renderChat(); }
+        else if (evt.type === "error") { agentMsg.text += `\n[error] ${evt.message}`; renderChat(); }
+      }
+    }
+  } catch (e) {
+    agentMsg.text += `\n[request failed: ${e}]`;
+  }
+  agentMsg.pending = false;
+  renderChat();
+}
+
+function exportCsv() {
+  const w = state.weights;
+  const rk = ranked(airports, w);
+  const header = ["rank", "iata", "name", "city", "state", "hub_class", "score", ...COMPONENT_KEYS];
+  const lines = [header.join(",")];
+  rk.forEach((r, i) => {
+    const d = r.row;
+    const row = [i + 1, d.iata, `"${d.name.replace(/"/g, '""')}"`, d.city || "", d.state || "", d.hub_class, r.score.toFixed(2),
+      ...COMPONENT_KEYS.map(k => d.components[k] ?? "")];
+    lines.push(row.join(","));
+  });
+  const blob = new Blob([lines.join("\n")], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = `airport-investment-screen-${state.region || "all"}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById("sendBtn").addEventListener("click", () => sendChat(document.getElementById("draftInput").value.trim()));
+document.getElementById("draftInput").addEventListener("keydown", e => {
+  if (e.key === "Enter") sendChat(e.target.value.trim());
+});
+document.getElementById("clearBtn").addEventListener("click", async () => {
+  if (state.sessionId) { try { await fetch(`/chat/${state.sessionId}`, { method: "DELETE" }); } catch (e) {} }
+  state.chatMessages = []; state.sessionId = null;
+  renderChat();
+});
+document.getElementById("exportBtn").addEventListener("click", exportCsv);
+
+(async function init() {
+  renderWeightsList();
+  renderChat();
+  await loadHealth();
+  await loadOptions();
+  await fetchRank();
+  await ensureDetail();
+})();
+</script>
+</body>
+</html>

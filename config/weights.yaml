@@ -1,0 +1,51 @@
+# Scoring weight profiles.
+#
+# Every profile must sum to 1.0 - validated at load time, not trusted.
+# The agent picks a profile from the question and states which one it used,
+# so a ranking is always reproducible from (profile, filters).
+#
+# Components:
+#   demand_pressure     runway-system saturation      (ops per runway)
+#   terminal_strain     gate/terminal saturation      (passengers per departure)
+#   unmet_demand        pressure x how binding the physical constraint is
+#   renewal_need        share of runway length not in GOOD condition
+#   expansion_feasibility  land headroom, public ownership, long-haul capability
+
+profiles:
+
+  # Default. No prior about what kind of project is being considered.
+  balanced:
+    demand_pressure: 0.30
+    terminal_strain: 0.25
+    unmet_demand: 0.20
+    renewal_need: 0.15
+    expansion_feasibility: 0.10
+
+  # "Which airports are candidates for TERMINAL expansion?"
+  # Up-gauging is the terminal-side signal: when airlines cannot add
+  # frequency they fly bigger aircraft, which strains gates and concourses
+  # before it strains runways.
+  terminal:
+    terminal_strain: 0.40
+    unmet_demand: 0.25
+    demand_pressure: 0.15
+    expansion_feasibility: 0.12
+    renewal_need: 0.08
+
+  # Airfield/runway capacity projects.
+  runway:
+    demand_pressure: 0.40
+    unmet_demand: 0.22
+    renewal_need: 0.18
+    expansion_feasibility: 0.12
+    terminal_strain: 0.08
+
+  # Pavement rehabilitation and modernization of existing infrastructure.
+  renewal:
+    renewal_need: 0.45
+    demand_pressure: 0.20
+    terminal_strain: 0.15
+    unmet_demand: 0.12
+    expansion_feasibility: 0.08
+
+default_profile: balanced

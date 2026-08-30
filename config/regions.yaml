@@ -1,0 +1,67 @@
+# Named regions -> USPS state codes.
+#
+# Analysts ask about "New England", not "CT, ME, MA, NH, RI, VT". Keeping the
+# mapping in config (rather than asking the model to recall it) means region
+# filters are auditable and cannot drift between answers.
+
+regions:
+
+  new_england:
+    label: New England
+    states: [CT, ME, MA, NH, RI, VT]
+
+  mid_atlantic:
+    label: Mid-Atlantic
+    states: [NY, NJ, PA, DE, MD, DC]
+
+  south_atlantic:
+    label: South Atlantic
+    states: [VA, WV, NC, SC, GA, FL]
+
+  gulf_south:
+    label: Gulf South
+    states: [AL, MS, LA, AR, TN, KY]
+
+  great_lakes:
+    label: Great Lakes
+    states: [OH, IN, IL, MI, WI, MN]
+
+  great_plains:
+    label: Great Plains
+    states: [ND, SD, NE, KS, IA, MO, OK]
+
+  texas:
+    label: Texas
+    states: [TX]
+
+  mountain_west:
+    label: Mountain West
+    states: [MT, ID, WY, CO, UT, NV]
+
+  southwest:
+    label: Southwest
+    states: [AZ, NM]
+
+  pacific_northwest:
+    label: Pacific Northwest
+    states: [WA, OR]
+
+  california:
+    label: California
+    states: [CA]
+
+  alaska:
+    label: Alaska
+    states: [AK]
+
+  hawaii:
+    label: Hawaii
+    states: [HI]
+
+  west_coast:
+    label: West Coast
+    states: [CA, OR, WA]
+
+  northeast:
+    label: Northeast
+    states: [CT, ME, MA, NH, RI, VT, NY, NJ, PA]
