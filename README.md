@@ -23,10 +23,17 @@ agent — no scripted output.*
 
 Requires [uv](https://docs.astral.sh/uv/) and Python 3.11+.
 
+The chat agent needs a Gemini API key — the deterministic scoring engine
+below does not. To get one:
+
+1. Go to [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
+2. Sign in with a Google account (free tier, no credit card)
+3. Click **Create API key** and copy it
+
 ```bash
 uv sync --extra dev
-export GEMINI_API_KEY=AIza...            # chat only; scoring works without it
-                                          # free, no card: aistudio.google.com/apikey
+export GEMINI_API_KEY=AIza...            # paste the key from above; chat only,
+                                          # scoring works without it
 
 uv run python -m airport_iq.ingest       # build the dataset (~30s first run)
 uv run uvicorn airport_iq.api.main:app --port 8000
