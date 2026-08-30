@@ -14,5 +14,5 @@ from dotenv import load_dotenv
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 # `override=False`: a variable already exported in the environment wins over
-# the file, so a one-off `ANTHROPIC_API_KEY=... uv run ...` still works.
+# the file, so a one-off `GEMINI_API_KEY=... uv run ...` still works.
 load_dotenv(PROJECT_ROOT / ".env", override=False)

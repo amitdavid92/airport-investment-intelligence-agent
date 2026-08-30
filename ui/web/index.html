@@ -274,6 +274,7 @@ async function loadOptions() {
   ).join("");
   grid.querySelectorAll(".region-btn").forEach(el => el.addEventListener("click", () => {
     state.region = el.dataset.region;
+    grid.querySelectorAll(".region-btn").forEach(b => b.classList.toggle("active", b.dataset.region === state.region));
     fetchRank();
   }));
 
@@ -329,6 +330,7 @@ async function fetchRank() {
     state.sel = airports.length ? airports[0].iata : null;
   }
   renderComputed();
+  ensureDetail();
 }
 
 function renderComputed() {

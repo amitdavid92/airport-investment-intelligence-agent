@@ -24,7 +24,7 @@ funding route is not an investment candidate no matter how strained it is.
 ## 2. System shape
 
 ```
-        Streamlit chat UI
+   Streamlit chat UI · web terminal UI
                 │
                 ▼
             FastAPI
@@ -34,7 +34,7 @@ funding route is not an investment candidate no matter how strained it is.
  (agent)    ────── no LLM in this path ──────
     │           │
     ▼           ▼
- Anthropic   Scoring engine  (pandas — deterministic)
+  Gemini     Scoring engine  (pandas — deterministic)
  tool runner       │
     │              ▼
     └────────► Query façade (service.py)
@@ -47,7 +47,7 @@ funding route is not an investment candidate no matter how strained it is.
 
 **The central claim: the language model never computes a number.** It resolves
 names, chooses a weight profile, calls tools, and explains what comes back.
-Every figure originates in `scoring/`, which has no dependency on `anthropic`.
+Every figure originates in `scoring/`, which has no dependency on `google-genai`.
 
 This is verifiable rather than asserted — `/rank` returns the same numbers the
 chat quotes, with no model in the call path:
