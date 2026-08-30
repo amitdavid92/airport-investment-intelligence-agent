@@ -86,12 +86,14 @@ def rank_airports(
 
 
 def get_airport_profile(iata: str, weight_profile: str | None = None) -> str:
-    """Full scored breakdown for one airport.
+    """Full scored breakdown for one airport, and the explanation of its score.
 
-    Returns the composite score, every component with the weight applied and
-    the raw published figure underneath it, the airport's national rank, the
-    confidence band, and any caveats about data coverage for that airport.
-    Use this to answer "why" questions about a single airport.
+    Returns the composite score, every component ordered by how many points it
+    contributed, with the weight applied and the raw published figure
+    underneath it, plus the airport's national rank, the confidence band, and
+    any caveats about data coverage. This is the tool for "why does X score
+    what it scores" questions - the component ordering is the explanation, so
+    the reasoning can be quoted rather than invented.
 
     Args:
         iata: Three-letter IATA code. Resolve a name to a code first if needed.
@@ -112,20 +114,6 @@ def compare_airports(iata_codes: list[str], weight_profile: str | None = None) -
         weight_profile: One of "balanced", "terminal", "runway", "renewal".
     """
     return _json(svc.compare(iata_codes, profile=weight_profile))
-
-
-def explain_score(iata: str, weight_profile: str | None = None) -> str:
-    """Explain how an airport's investment score was built up.
-
-    Returns each component ordered by how many points it contributed, what the
-    component measures, and the raw figure behind it - so the reasoning can be
-    quoted rather than invented.
-
-    Args:
-        iata: Three-letter IATA code.
-        weight_profile: One of "balanced", "terminal", "runway", "renewal".
-    """
-    return _json(svc.profile_airport(iata, profile=weight_profile))
 
 
 def get_long_haul_share(iata: str) -> str:
@@ -166,7 +154,6 @@ TOOLS = [
     rank_airports,
     get_airport_profile,
     compare_airports,
-    explain_score,
     get_long_haul_share,
     list_scoring_options,
 ]

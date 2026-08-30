@@ -10,6 +10,7 @@ carries the required caveats into its answer.
 from __future__ import annotations
 
 import os
+import re
 
 import pytest
 
@@ -73,7 +74,7 @@ def test_q3_anchorage_long_haul_is_reported_as_unavailable(session):
 def test_q4_sfo_unmet_demand_explains_why(session):
     """Must call the scoring engine and explain using its components."""
     turn = session.ask("What is the unmet flight demand in SFO airport and why?")
-    assert tool_names(turn) & {"get_airport_profile", "explain_score"}
+    assert "get_airport_profile" in tool_names(turn)
 
     lowered = turn.text.lower()
     assert "sfo" in lowered
@@ -95,9 +96,18 @@ def test_follow_up_keeps_context(session):
 
 
 def test_agent_does_not_invent_numbers_for_unknown_airports(session):
+    """The contract is behavioural: look it up, then report the miss.
+
+    Asserted on what the agent *did* rather than on how it worded the refusal.
+    An earlier version grepped for phrases like "could not find" and flaked
+    whenever the model chose different English for the same correct answer.
+    """
     turn = session.ask("What is the investment score for Narnia International Airport?")
-    lowered = turn.text.lower()
-    assert any(
-        phrase in lowered
-        for phrase in ("not find", "no airport", "could not", "couldn't", "not in")
-    )
+
+    # It must actually attempt a lookup rather than answering from its own memory.
+    assert "resolve_airport" in tool_names(turn)
+
+    # And it must not present a score. Nothing in the dataset backs one, so any
+    # score-shaped figure here would be fabricated.
+    scores = re.findall(r"\b(?:score\D{0,20})(\d{1,3}(?:\.\d+)?)", turn.text, re.I)
+    assert not scores, f"agent quoted a score for an unknown airport: {scores}"

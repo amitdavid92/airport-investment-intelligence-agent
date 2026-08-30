@@ -109,8 +109,9 @@ and gives a runway-capability proxy instead of inventing a percentage. Setting
 ## Tests
 
 ```bash
-uv run pytest -q                                # 65 tests, no API key needed
-uv run pytest tests/test_brief_questions.py -v  # agent tests (needs a key)
+uv run pytest -q                                # 71 tests; 65 run without a key,
+                                                # the 6 agent tests skip cleanly
+uv run pytest tests/test_brief_questions.py -v  # the agent tests (needs a key)
 ```
 
 Covers golden published figures, determinism, monotonicity, missing-data

@@ -215,31 +215,57 @@ tool orchestration, and explanation in prose.
 
 **Where it is not:** any arithmetic, any ranking, any score.
 
-Implemented directly against Google's Gemini API (`client.interactions.create`,
-model `gemini-3.7-flash`) — no agent framework. For seven tools over a local
-dataset, a framework would add an abstraction layer to defend in review
-without changing behaviour. Conversation state is kept server-side via
-`previous_interaction_id`, so `ConversationSession` only tracks the last
-interaction id, not a growing transcript.
+Implemented directly against Google's Gemini API (`client.chats.create` /
+`chat.send_message`, model `gemini-3.1-flash-lite`) — no agent framework. For
+six tools over a local dataset, a framework would add an abstraction layer to
+defend in review without changing behaviour.
+
+Tool calling uses the SDK's *automatic function calling*: the plain typed
+Python functions in `agent/tools.py` are passed straight to the SDK, which
+derives each schema from the signature and docstring, executes the call, and
+feeds the result back — all inside one `send_message`. `Chat` keeps the
+transcript internally, so `ConversationSession` holds the `Chat` object and no
+transcript of its own, and follow-up questions resolve against what was
+already said with no extra bookkeeping.
+
+Two implementation notes worth recording, because both cost real debugging
+time:
+
+- **The newer Interactions API was tried first and abandoned.** Requests
+  returned successfully but were only actually routed through the model after
+  being reissued via the SDK's documented `chats.create` path — which itself
+  raised a runtime warning pointing there. The `chats` path is what ships.
+- **`from __future__ import annotations` silently breaks tool calling.** The
+  SDK's argument converter reads `inspect.signature()` rather than
+  `typing.get_type_hints()`, so postponed annotations arrive as strings
+  (`"str | None"`) and its `isinstance(value, annotation)` check raises
+  `TypeError` for every explicitly-passed argument. The tool call fails, and
+  the model papers over the gap in prose instead of reporting data. That
+  import is deliberately absent from `agent/tools.py`.
 
 **Provider note.** The assignment sets no LLM budget, so the chat runs on
 Gemini's standing free tier (a Google account via AI Studio, no card, no
 expiry) rather than a paid API. This was a deliberate late substitution — the
 system was designed and built against Claude's tool-use model first, and the
 swap validates the separation of concerns the architecture claims: `service.py`
-and everything below it is unchanged, and only `agent/tools.py` (schema
-declarations instead of decorated functions) and `agent/session.py` (the
-Interactions API's call-and-chain shape instead of a tool-runner loop) needed
-to move. `agent/prompt.py` is untouched — the system prompt has no
-provider-specific instructions in it.
+and everything below it is unchanged, and the move was confined to the two
+files in `agent/` that touch the provider — `tools.py` (the same functions,
+now handed to the SDK for automatic schema derivation rather than wrapped in
+an explicit tool-runner) and `session.py` (the `Chat` object in place of a
+tool-runner loop).
+
+`agent/prompt.py` carries no provider-specific syntax, and the ranking rules
+in it did not change. It did gain tool-economy rules — call each tool once,
+don't re-fetch what a ranking already returned — after the free tier's
+rate limits made redundant calls expensive. Those are stated in
+provider-neutral terms and would apply to any tool-using model.
 
 | Tool | Purpose |
 |---|---|
 | `resolve_airport` | "LA" → LAX, "Santa Ana" → SNA, with match method + confidence |
 | `rank_airports` | ranking under an explicit, reported scope |
-| `get_airport_profile` | full breakdown for one airport |
+| `get_airport_profile` | full breakdown for one airport — components ordered by points contributed, which is also the answer to "why does it score this?" |
 | `compare_airports` | side-by-side, flags cross-hub-class comparisons |
-| `explain_score` | component-by-component contribution |
 | `get_long_haul_share` | long-haul share, or an explicit statement that it is unavailable |
 | `list_scoring_options` | available profiles, regions, hub classes |
 
@@ -282,7 +308,8 @@ production — a real deployment needs a shared store.
 
 ## 7. Testing
 
-65 tests, no API key required (agent tests skip cleanly without one).
+71 tests. The 65 deterministic ones need no API key; the 6 agent tests skip
+cleanly without one.
 
 - **Golden values** — published BTS/FAA figures pinned for SFO, ATL, ORD, DEN
 - **Determinism** — identical inputs produce identical scores; row order is irrelevant
