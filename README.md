@@ -11,11 +11,12 @@ weighting, calls tools, and explains the results. Every figure comes from
 📄 **[ARCHITECTURE.md](ARCHITECTURE.md)** — scoring methodology, tradeoffs, and
 where AI is used.
 
-![Demo: live weight sliders re-ranking airports, a region filter, and a real streamed chat answer](docs/demo.gif)
+![Demo: the top-5 shortlist re-ranking live as weights change, a region filter, a score breakdown, and a real streamed chat answer](docs/demo.gif)
 
-*Weight sliders re-rank instantly (client-side, over the real percentile
-components), a region filter, and a genuine streamed answer from the chat
-agent — no scripted output.*
+*The top 5 are marked as a shortlist with the score spread and the gap to #6 —
+the tell for how stable the cut is. Weight sliders re-rank it instantly
+(client-side, over the real percentile components), and the chat answer is a
+genuine streamed response from the agent — no scripted output.*
 
 ---
 
