@@ -48,6 +48,24 @@
   .tbl-head { height: 26px; border-bottom: 1px solid oklch(0.88 0.004 90); background: oklch(0.975 0.002 90); font-family: 'Geist Mono', monospace; font-size: 9px; letter-spacing: 0.08em; color: oklch(0.5 0.005 90); }
   .tbl-row { height: 30px; cursor: pointer; border-bottom: 1px solid oklch(0.935 0.004 90); }
   .tbl-row:hover { background: oklch(0.955 0.006 340) !important; }
+  /* Shortlist tiers. The remaining rows are dimmed once, through type colour
+     only - never an opacity layer, which would drop the 10.5px KPI numerals
+     below the 4.5:1 contrast floor. */
+  .tbl-row-top { height: 38px; padding-left: 13px; border-left: 3px solid oklch(0.78 0.09 340); }
+  .tbl-row-top:hover { background: oklch(0.955 0.012 340) !important; }
+  .tbl-row-rest { height: 27px; border-bottom: 1px solid oklch(0.945 0.004 90); }
+  .shortlist-band { display: flex; align-items: center; justify-content: space-between;
+    height: 24px; padding: 0 16px; min-width: 800px;
+    background: oklch(0.955 0.014 340); border-bottom: 1px solid oklch(0.9 0.02 340); }
+  .rest-strip { display: flex; align-items: center; justify-content: space-between;
+    height: 26px; padding: 0 16px; min-width: 800px; cursor: pointer;
+    background: oklch(0.972 0.002 90); border-bottom: 1px solid oklch(0.9 0.004 90); }
+  .rest-strip:hover { background: oklch(0.95 0.004 90); }
+  .rest-strip.inert { cursor: default; }
+  .rest-strip.inert:hover { background: oklch(0.972 0.002 90); }
+  .rank-chip { width: 19px; height: 19px; display: flex; align-items: center;
+    justify-content: center; font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 600; }
+  .msi-star { font-variation-settings: 'FILL' 1, 'wght' 400; }
   .r { text-align: right; }
   .bar-track { height: 5px; background: oklch(0.92 0.004 90); }
   .bar-fill { height: 5px; }
@@ -197,16 +215,24 @@ const NAMED_PROFILES = {
 };
 const HUB_SHORT = { large_hub: "LRG", medium_hub: "MED", small_hub: "SML", nonhub: "NON" };
 const MIN_ENPL_OPTIONS = [0, 1000, 5000, 10000, 25000, 50000, 100000, 250000, 500000, 1000000, 2000000];
+// Where the shortlist cut falls. Presentation only - /rank still returns the
+// full in-scope set and the ranking below is computed over all of it.
+const SHORTLIST_N = 5;
 
 const state = {
   weights: { ...DEFAULT_WEIGHTS },
   region: "",
   minEnpl: 10000,
   sel: null,
+  showRest: false,
   draft: "",
   chatMessages: [],
   sessionId: null,
 };
+
+// Remembers which selection we already auto-expanded the tail for, so an
+// explicit collapse sticks instead of being undone on the next render.
+let autoExpandedFor = null;
 
 let optionsData = null;
 let healthData = null;
@@ -333,10 +359,7 @@ async function fetchRank() {
   airports = data.results || [];
   lastWarnings = data.warnings || [];
   inScopeTotal = data.airports_in_scope ?? airports.length;
-  if (!airports.find(a => a.iata === state.sel)) {
-    state.sel = airports.length ? airports[0].iata : null;
-  }
-  renderComputed();
+  renderComputed();   // resolves the selection against the new scope
   ensureDetail();
 }
 
@@ -348,6 +371,13 @@ function renderComputed() {
   const rkEq = ranked(airports, eqW).map(r => r.row.iata);
   const meds = medians(airports);
   const top = rk.length ? rk[0].score : 100;
+
+  // Keep the selection on something the table actually shows. Falls back to
+  // rank #1 rather than the first row of the unsorted array, so the detail
+  // panel always describes an airport visible in the shortlist band.
+  if (!rk.some(r => r.row.iata === state.sel)) {
+    state.sel = rk.length ? rk[0].row.iata : null;
+  }
 
   COMPONENTS.forEach(c => {
     document.getElementById(`wpct-${c.key}`).textContent = wTot > 0 ? Math.round((w[c.key] / wTot) * 100) + "%" : "—";
@@ -368,35 +398,106 @@ function renderComputed() {
     ["LLM FIGURES", "0"],
   ].map(([k, v]) => `<div class="ticker-item"><span>${k}</span><span style="font-weight:500;">${v}</span></div>`).join("");
 
+  const topRk = rk.slice(0, SHORTLIST_N);
+  const restRk = rk.slice(SHORTLIST_N);
+  const n = restRk.length;
+
+  // If the re-rank pushed the selected airport into the collapsed tail, open
+  // the tail once so it stays visible - but only once per selection, so a
+  // deliberate collapse afterwards is respected.
+  const selInTail = restRk.some(r => r.row.iata === state.sel);
+  if (selInTail) {
+    if (autoExpandedFor !== state.sel) {
+      state.showRest = true;
+      autoExpandedFor = state.sel;
+    }
+  } else {
+    autoExpandedFor = null;
+  }
+
+  const spread = rk.length
+    ? `${rk[0].score.toFixed(1)} → ${topRk[topRk.length - 1].score.toFixed(1)} · ${
+        n ? (rk[0].score - rk[SHORTLIST_N].score).toFixed(1) + " PT GAP TO #6" : "FULL SET"}`
+    : "—";
+
+  const band = `<div class="shortlist-band">
+    <div class="mono" style="display:flex;align-items:center;gap:6px;font-size:9px;letter-spacing:0.1em;color:oklch(0.44 0.13 340);">
+      <span class="msi msi-star" style="font-size:13px;">star</span>SHORTLIST · TOP ${SHORTLIST_N}
+    </div>
+    <div class="mono" style="font-size:9px;letter-spacing:0.06em;color:oklch(0.5 0.08 340);">${spread}</div>
+  </div>`;
+
+  const strip = `<div class="rest-strip${n ? "" : " inert"}" id="restStrip">
+    <div class="mono" style="display:flex;align-items:center;gap:6px;font-size:9px;letter-spacing:0.1em;color:oklch(0.52 0.005 90);">
+      <span class="msi" style="font-size:14px;font-variation-settings:'FILL' 0,'wght' 400;">${
+        n ? (state.showRest ? "expand_less" : "expand_more") : "remove"}</span>${
+        n ? (state.showRest ? `HIDE REMAINING ${n}` : `SHOW REMAINING ${n} BELOW SHORTLIST`)
+          : "NO CANDIDATES BELOW SHORTLIST"}
+    </div>
+    <div class="mono" style="font-size:9px;letter-spacing:0.06em;color:oklch(0.6 0.005 90);">${
+      n ? `SCORES ${rk[SHORTLIST_N].score.toFixed(1)} AND BELOW` : "ALL IN-SCOPE AIRPORTS SHORTLISTED"}</div>
+  </div>`;
+
   const body = document.getElementById("tableBody");
-  body.innerHTML = rk.map((r, i) => {
-    const eqIdx = rkEq.indexOf(r.row.iata);
-    const dlt = eqIdx - i;
-    const isSel = r.row.iata === state.sel;
-    const deltaTxt = dlt === 0 ? "—" : (dlt > 0 ? "▲" + dlt : "▼" + Math.abs(dlt));
-    const deltaColor = dlt === 0 ? "oklch(0.72 0.004 90)" : (dlt > 0 ? "oklch(0.55 0.13 150)" : "oklch(0.58 0.15 25)");
-    const metrics = COMPONENT_KEYS.map(k => {
-      const v = r.row.components[k];
-      return `<div class="mono r" style="font-size:11px;color:oklch(0.4 0.005 90);">${v === null || v === undefined ? "—" : v.toFixed(0)}</div>`;
-    }).join("");
-    return `<div class="tbl-grid tbl-row" data-code="${r.row.iata}" style="background:${isSel ? "oklch(0.955 0.012 340)" : "transparent"};">
-      <div class="mono" style="font-size:11px;color:oklch(0.55 0.005 90);">${i + 1}</div>
-      <div class="mono" style="font-size:12px;font-weight:600;">${r.row.iata}</div>
-      <div style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:12px;">${r.row.name}<span style="color:oklch(0.62 0.005 90);"> · ${HUB_SHORT[r.row.hub_class] || r.row.hub_class}</span></div>
-      <div class="mono r" style="font-size:12px;font-weight:600;padding-right:10px;">${r.score.toFixed(1)}</div>
-      <div class="bar-track"><div class="bar-fill" style="background:${isSel ? "oklch(0.45 0.17 340)" : "oklch(0.68 0.11 340)"};width:${(r.score / (top || 1) * 100).toFixed(1)}%;"></div></div>
-      ${metrics}
-      <div class="mono r" style="font-size:10px;color:${deltaColor};">${deltaTxt}</div>
-    </div>`;
-  }).join("");
+  body.innerHTML = band
+    + topRk.map((r, i) => rowCells(r, i, "top", top, rkEq)).join("")
+    + strip
+    + (state.showRest ? restRk.map((r, i) => rowCells(r, i + SHORTLIST_N, "rest", top, rkEq)).join("") : "");
+
   body.querySelectorAll(".tbl-row").forEach(el => el.addEventListener("click", () => {
     state.sel = el.dataset.code;
     renderComputed();
     ensureDetail();
   }));
+  if (n) {
+    document.getElementById("restStrip").addEventListener("click", () => {
+      state.showRest = !state.showRest;
+      renderComputed();
+    });
+  }
 
   renderDetail(rk, meds, top, wTot);
   renderAssumptions();
+}
+
+/** One row of the candidates table. Both tiers render through this so the
+ *  shortlist and the tail can never drift apart on columns or values. */
+function rowCells(r, i, tier, top, rkEq) {
+  const isSel = r.row.iata === state.sel;
+  const isTop = tier === "top";
+  const eqIdx = rkEq.indexOf(r.row.iata);
+  const dlt = eqIdx - i;
+  const deltaTxt = dlt === 0 ? "—" : (dlt > 0 ? "▲" + dlt : "▼" + Math.abs(dlt));
+  const deltaColor = dlt === 0 ? "oklch(0.72 0.004 90)"
+    : (dlt > 0 ? "oklch(0.55 0.13 150)" : "oklch(0.58 0.15 25)");
+
+  const chipBg = isSel ? "oklch(0.42 0.18 340)"
+    : (i === 0 ? "oklch(0.24 0.005 90)" : "oklch(0.91 0.02 340)");
+  const chipFg = (isSel || i === 0) ? "oklch(0.98 0.003 90)" : "oklch(0.4 0.09 340)";
+  const barFill = isSel ? "oklch(0.42 0.18 340)"
+    : (isTop ? "oklch(0.58 0.15 340)" : "oklch(0.72 0.08 340)");
+
+  const rankCell = isTop
+    ? `<div style="display:flex;align-items:center;"><span class="rank-chip" style="background:${chipBg};color:${chipFg};">${i + 1}</span></div>`
+    : `<div class="mono" style="font-size:10.5px;color:oklch(0.52 0.005 90);">${i + 1}</div>`;
+
+  const metrics = COMPONENT_KEYS.map(k => {
+    const v = r.row.components[k];
+    return `<div class="mono r" style="font-size:${isTop ? 11 : 10.5}px;color:${
+      isTop ? "oklch(0.38 0.005 90)" : "oklch(0.42 0.005 90)"};">${
+      v === null || v === undefined ? "—" : v.toFixed(0)}</div>`;
+  }).join("");
+
+  const hub = HUB_SHORT[r.row.hub_class] || r.row.hub_class;
+  return `<div class="tbl-grid tbl-row ${isTop ? "tbl-row-top" : "tbl-row-rest"}" data-code="${r.row.iata}" style="background:${isSel ? "oklch(0.955 0.012 340)" : "transparent"};${isTop && isSel ? "border-left-color:oklch(0.42 0.18 340);" : ""}">
+    ${rankCell}
+    <div class="mono" style="font-size:${isTop ? "13.5px;letter-spacing:-0.01em" : "11.5px"};font-weight:${isTop ? 600 : 500};">${r.row.iata}</div>
+    <div style="font-size:${isTop ? "12.5px;font-weight:500" : "11.5px"};color:${isTop ? "inherit" : "oklch(0.36 0.005 90)"};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:12px;">${r.row.name}<span style="font-weight:400;color:${isTop ? "oklch(0.62 0.005 90)" : "oklch(0.6 0.005 90)"};"> · ${hub}</span></div>
+    <div class="mono r" style="font-size:${isTop ? "14px" : "11.5px"};font-weight:${isTop ? 600 : 400};padding-right:10px;color:${isTop ? "inherit" : "oklch(0.32 0.005 90)"};">${r.score.toFixed(1)}</div>
+    <div class="bar-track" style="height:${isTop ? 7 : 4}px;"><div class="bar-fill" style="height:${isTop ? 7 : 4}px;background:${barFill};width:${(r.score / (top || 1) * 100).toFixed(1)}%;"></div></div>
+    ${metrics}
+    <div class="mono r" style="font-size:10px;color:${deltaColor};">${deltaTxt}</div>
+  </div>`;
 }
 
 function renderDetail(rk, meds, top, wTot) {
