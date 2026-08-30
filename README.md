@@ -11,6 +11,12 @@ weighting, calls tools, and explains the results. Every figure comes from
 📄 **[ARCHITECTURE.md](ARCHITECTURE.md)** — scoring methodology, tradeoffs, and
 where AI is used.
 
+![Demo: live weight sliders re-ranking airports, a region filter, and a real streamed chat answer](docs/demo.gif)
+
+*Weight sliders re-rank instantly (client-side, over the real percentile
+components), a region filter, and a genuine streamed answer from the chat
+agent — no scripted output.*
+
 ---
 
 ## Quick start
@@ -23,11 +29,13 @@ export GEMINI_API_KEY=AIza...            # chat only; scoring works without it
                                           # free, no card: aistudio.google.com/apikey
 
 uv run python -m airport_iq.ingest       # build the dataset (~30s first run)
-uv run uvicorn airport_iq.api.main:app --port 8000    # terminal 1
-uv run streamlit run ui/app.py                        # terminal 2
+uv run uvicorn airport_iq.api.main:app --port 8000
 ```
 
-Open http://localhost:8501.
+Open **http://localhost:8000** for the web terminal UI (shown above — ranked
+table, live weight sliders, chat), or run `uv run streamlit run ui/app.py` in
+a second terminal for the simpler Streamlit chat + sidebar view at
+http://localhost:8501. Both talk to the same FastAPI backend.
 
 ---
 
@@ -112,6 +120,7 @@ src/airport_iq/
   agent/         tools · system prompt · session loop
   api/main.py    FastAPI
 ui/app.py        Streamlit chat + breakdown panel
+ui/web/          Web terminal UI (static, served by FastAPI itself)
 tests/
 ```
 
